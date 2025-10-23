@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createCategorySchema } from "@/lib/validation";
-import { ApiError, handleError } from "@/lib/errors";
+import { ApiError, handleError, handleZodErrors } from "@/lib/errors";
+import { ZodError } from "zod";
 //works
 export async function GET() {
   try {
@@ -25,6 +26,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(category, { status: 201 });
   } catch (error) {
+    if (error instanceof ZodError) {
+      return handleZodErrors(error, "Validation Failed.");
+    }
     const { status, body } = handleError(error);
     return NextResponse.json(body, { status });
   }

@@ -1,8 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { updateTransactionSchema } from "@/lib/validation";
-import { ApiError, handleError } from "@/lib/errors";
+import { ApiError, handleError, handleZodErrors } from "@/lib/errors";
 import { calculateBalanceChange, getCategory } from "@/lib/transactions";
+import { ZodError } from "zod";
 
 export async function GET(
   request: NextRequest,
@@ -94,6 +95,9 @@ export async function PUT(
       user: updatedUser,
     });
   } catch (error) {
+    if (error instanceof ZodError) {
+      return handleZodErrors(error, "Validation Failed.");
+    }
     const { status, body } = handleError(error);
     return NextResponse.json(body, { status });
   }

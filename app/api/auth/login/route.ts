@@ -3,7 +3,8 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validation";
 import { generateToken } from "@/lib/jwt";
-import { ApiError, handleError } from "@/lib/errors";
+import { ApiError, handleError, handleZodErrors } from "@/lib/errors";
+import { ZodError } from "zod";
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,6 +43,9 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof ZodError) {
+      return handleZodErrors(error, "Validation Failed.");
+    }
     const { status, body } = handleError(error);
     console.log(error);
 
